@@ -327,7 +327,15 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
 
   void _onResumed() async {
     print("resumed");
-    await TokenRefreshService().refreshTokens(force: true);
+    // Do NOT force a token rotation on resume. The backend issues
+    // one-time-use refresh tokens, so forcing a refresh while the current
+    // JWT is still valid burns the refresh token; a second resume (or the
+    // periodic timer) landing afterwards then re-presents the now-rotated
+    // token, gets a 401 on /token/, and purges the session — logging the
+    // user out between uses. A non-forced refresh validates the JWT and only
+    // rotates when it has actually expired. Genuine 401s during use are still
+    // recovered by AuthInterceptor (which forces a refresh on demand).
+    await TokenRefreshService().refreshTokens();
   }
 
   void _onInactive() => print('inactive');
