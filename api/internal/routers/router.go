@@ -137,5 +137,9 @@ func BuildRootRouter() *chi.Mux {
 	widgetRouter := BuildWidgetRouter()
 	rootRouter.Mount("/api/widget", widgetRouter)
 
+	// Report router
+	reportRouter := BuildReportRouter()
+	rootRouter.Mount("/api/report", reportRouter)
+
 	return rootRouter
 }
