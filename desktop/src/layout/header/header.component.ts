@@ -34,6 +34,11 @@ export class HeaderComponent {
     return [this.store.selectSnapshot(GroupState.dashboardLink)];
   });
 
+  public reportsHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.reportsLink)];
+  });
+
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
     return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
