@@ -25,6 +25,11 @@
       (clicked)="updateStatus(reportStatus.Paid)"
     ></app-button>
     <app-button
+      buttonText="Download Excel"
+      color="primary"
+      (clicked)="exportXlsx()"
+    ></app-button>
+    <app-button
       buttonText="Download CSV"
       color="accent"
       (clicked)="exportCsv()"

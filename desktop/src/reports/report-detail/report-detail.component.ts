@@ -189,6 +189,19 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
+  public exportXlsx(): void {
+    this.reportService
+      .exportReportXlsx(this.reportId)
+      .pipe(
+        take(1),
+        tap((blob) => {
+          const name = this.report()?.name ?? "report";
+          downloadFile(blob, `${name}-expense-report.xlsx`);
+        })
+      )
+      .subscribe();
+  }
+
   public exportCsv(): void {
     this.reportService
       .exportReportCsv(this.reportId)

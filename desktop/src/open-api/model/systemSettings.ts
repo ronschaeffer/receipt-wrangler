@@ -60,6 +60,9 @@ export interface SystemSettings {
      * Concurrency for task worker
      */
     taskConcurrency?: number;
+    /**
+     * DPI used when rasterizing PDFs
+     */
     pdfDpi?: number;
     taskQueueConfigurations: Array<TaskQueueConfiguration>;
 }

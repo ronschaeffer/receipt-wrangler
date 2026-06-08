@@ -17,6 +17,7 @@ api/prompt.service.ts
 api/receipt.service.ts
 api/receiptImage.service.ts
 api/receiptProcessingSettings.service.ts
+api/report.service.ts
 api/search.service.ts
 api/systemEmail.service.ts
 api/systemSettings.service.ts
@@ -41,6 +42,7 @@ model/associatedApiKeys.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
 model/baseModel.ts
+model/bulkReportReceiptCommand.ts
 model/bulkStatusUpdateCommand.ts
 model/bulkUserDeleteCommand.ts
 model/category.ts
@@ -74,6 +76,7 @@ model/groupRole.ts
 model/groupSettings.ts
 model/groupSettingsWhiteListEmail.ts
 model/groupStatus.ts
+model/groupTaxRule.ts
 model/icon.ts
 model/importType.ts
 model/internalErrorResponse.ts
@@ -101,6 +104,8 @@ model/receiptPagedRequestCommand.ts
 model/receiptPagedRequestFilter.ts
 model/receiptProcessingSettings.ts
 model/receiptStatus.ts
+model/report.ts
+model/reportStatus.ts
 model/resetPasswordCommand.ts
 model/searchResult.ts
 model/signUpCommand.ts
@@ -131,6 +136,7 @@ model/upsertItemCommand.ts
 model/upsertPromptCommand.ts
 model/upsertReceiptCommand.ts
 model/upsertReceiptProcessingSettingsCommand.ts
+model/upsertReportCommand.ts
 model/upsertSystemEmailCommand.ts
 model/upsertSystemSettingsCommand.ts
 model/upsertTagCommand.ts
