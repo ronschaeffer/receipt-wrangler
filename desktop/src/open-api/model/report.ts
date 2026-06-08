@@ -7,8 +7,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { ReportStatus } from './reportStatus';
 import { Receipt } from './receipt';
+import { ReportStatus } from './reportStatus';
 
 
 /**
@@ -26,6 +26,9 @@ export interface Report {
      * Group foreign key
      */
     groupId: number;
+    /**
+     * Report lifecycle status
+     */
     status: ReportStatus;
     /**
      * When the report was marked submitted
@@ -41,4 +44,7 @@ export interface Report {
     receipts?: Array<Receipt>;
     updatedAt?: string;
 }
+export namespace Report {
+}
+
 

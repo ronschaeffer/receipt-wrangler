@@ -19,6 +19,12 @@ export interface UpsertReportCommand {
      * Group foreign key
      */
     groupId: number;
+    /**
+     * Optional status to set
+     */
     status?: ReportStatus;
 }
+export namespace UpsertReportCommand {
+}
+
 

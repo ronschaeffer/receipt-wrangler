@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { GroupTaxRule } from './groupTaxRule';
 
 
 export interface GroupReceiptSettings { 
@@ -54,5 +55,21 @@ export interface GroupReceiptSettings {
      * Hide share tags
      */
     hideShareTags?: boolean;
+    /**
+     * Home currency (ISO 4217) for expense reports
+     */
+    homeCurrency?: string;
+    /**
+     * Prefer the receipt\'s printed tax over a computed rate
+     */
+    usePrintedTax?: boolean;
+    /**
+     * Fallback tax rate used when no printed tax is available
+     */
+    defaultTaxRate?: number;
+    /**
+     * Per-country tax treatment rules
+     */
+    taxRules?: Array<GroupTaxRule>;
 }
 

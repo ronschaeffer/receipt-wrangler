@@ -2960,6 +2960,35 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /report/{reportId}/export/xlsx:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    post:
+      tags:
+        - Report
+      summary: Export report as Excel workbook
+      description: This will export the report's receipts as a populated .xlsx expense report
+      operationId: exportReportXlsx
+      responses:
+        200:
+          description: An .xlsx expense report workbook
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -3627,6 +3656,21 @@ components:
         createdByString:
           type: string
           description: Created by string, which is anything that is not a user
+        currency:
+          type: string
+          description: ISO 4217 currency code read from the receipt
+        originalAmount:
+          type: string
+          description: Original printed amount before conversion
+        taxAmount:
+          type: string
+          description: Tax/VAT amount printed on the receipt
+        supplierTaxId:
+          type: string
+          description: Supplier tax/VAT registration number
+        countryCode:
+          type: string
+          description: ISO 3166-1 alpha-2 country code of the merchant
       description: Receipt
     Tag:
       required:
@@ -4217,6 +4261,20 @@ components:
             hideShareTags:
               type: boolean
               description: Hide share tags
+            homeCurrency:
+              type: string
+              description: Home currency (ISO 4217) for expense reports
+            usePrintedTax:
+              type: boolean
+              description: Prefer the receipt's printed tax over a computed rate
+            defaultTaxRate:
+              type: number
+              description: Fallback tax rate used when no printed tax is available
+            taxRules:
+              type: array
+              description: Per-country tax treatment rules
+              items:
+                $ref: "#/components/schemas/GroupTaxRule"
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
@@ -4244,6 +4302,45 @@ components:
         hideShareTags:
           type: boolean
           description: Hide share tags
+        homeCurrency:
+          type: string
+          description: Home currency (ISO 4217) for expense reports
+        usePrintedTax:
+          type: boolean
+          description: Prefer the receipt's printed tax over a computed rate
+        defaultTaxRate:
+          type: number
+          description: Fallback tax rate used when no printed tax is available
+        taxRules:
+          type: array
+          description: Per-country tax treatment rules
+          items:
+            $ref: "#/components/schemas/GroupTaxRule"
+    GroupTaxRule:
+      allOf:
+        - $ref: "#/components/schemas/BaseModel"
+        - type: object
+          required:
+            - countryCode
+          properties:
+            groupReceiptSettingsId:
+              type: integer
+              description: Group receipt settings foreign key
+            countryCode:
+              type: string
+              description: ISO 3166-1 alpha-2 country code the rule applies to
+            reclaimable:
+              type: boolean
+              description: Whether tax from this country can be reclaimed
+            requireTaxId:
+              type: boolean
+              description: Whether a supplier tax id is required on the receipt to reclaim
+            defaultRate:
+              type: number
+              description: Fallback tax rate for this country
+            label:
+              type: string
+              description: Optional human-readable label
     GroupSettings:
       type: object
       required:
@@ -4659,6 +4756,21 @@ components:
           description: Custom fields associated to receipt
           items:
             $ref: "#/components/schemas/UpsertCustomFieldValueCommand"
+        currency:
+          type: string
+          description: ISO 4217 currency code read from the receipt
+        originalAmount:
+          type: string
+          description: Original printed amount before conversion
+        taxAmount:
+          type: string
+          description: Tax/VAT amount printed on the receipt
+        supplierTaxId:
+          type: string
+          description: Supplier tax/VAT registration number
+        countryCode:
+          type: string
+          description: ISO 3166-1 alpha-2 country code of the merchant
     UpsertItemCommand:
       type: object
       required:
@@ -4819,6 +4931,10 @@ components:
               type: integer
               description: Concurrency for task worker
               default: 10
+            pdfDpi:
+              type: integer
+              description: DPI used when rasterizing PDFs
+              default: 300
             taskQueueConfigurations:
               type: array
               items:
@@ -4865,6 +4981,9 @@ components:
         taskConcurrency:
           type: integer
           description: Concurrency for task worker
+        pdfDpi:
+          type: integer
+          description: DPI used when rasterizing PDFs
         taskQueueConfigurations:
           type: array
           items:

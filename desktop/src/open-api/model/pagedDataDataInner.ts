@@ -89,6 +89,26 @@ export interface PagedDataDataInner {
      */
     createdByString?: string;
     /**
+     * ISO 4217 currency code read from the receipt
+     */
+    currency?: string;
+    /**
+     * Original printed amount before conversion
+     */
+    originalAmount?: string;
+    /**
+     * Tax/VAT amount printed on the receipt
+     */
+    taxAmount?: string;
+    /**
+     * Supplier tax/VAT registration number
+     */
+    supplierTaxId?: string;
+    /**
+     * ISO 3166-1 alpha-2 country code of the merchant
+     */
+    countryCode?: string;
+    /**
      * Custom Field description
      */
     description?: string;
