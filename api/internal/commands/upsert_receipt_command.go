@@ -24,6 +24,11 @@ type UpsertReceiptCommand struct {
 	Comments        []UpsertCommentCommand          `json:"comments"`
 	CustomFields    []UpsertCustomFieldValueCommand `json:"customFields"`
 	CreatedByString string                          `json:"createdByString"`
+	Currency        *string                         `json:"currency,omitempty"`
+	OriginalAmount  *decimal.Decimal                `json:"originalAmount,omitempty"`
+	TaxAmount       *decimal.Decimal                `json:"taxAmount,omitempty"`
+	SupplierTaxId   *string                         `json:"supplierTaxId,omitempty"`
+	CountryCode     *string                         `json:"countryCode,omitempty"`
 }
 
 func (receipt *UpsertReceiptCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

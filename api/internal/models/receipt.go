@@ -23,6 +23,11 @@ type Receipt struct {
 	ReceiptItems []Item             `json:"receiptItems"`
 	Comments     []Comment          `json:"comments"`
 	CustomFields []CustomFieldValue `json:"customFields"`
+	Currency       *string          `gorm:"type:varchar(3)" json:"currency,omitempty"`
+	OriginalAmount *decimal.Decimal `gorm:"type:decimal(10,2)" json:"originalAmount,omitempty"`
+	TaxAmount      *decimal.Decimal `gorm:"type:decimal(10,2)" json:"taxAmount,omitempty"`
+	SupplierTaxId  *string          `json:"supplierTaxId,omitempty"`
+	CountryCode    *string          `gorm:"type:varchar(2)" json:"countryCode,omitempty"`
 }
 
 func (r *Receipt) ToString() (string, error) {
