@@ -23,6 +23,7 @@ func BuildReportRouter() *chi.Mux {
 
 	reportRouter.Post("/{reportId}/export/csv", handlers.ExportReportCsv)
 	reportRouter.Post("/{reportId}/export/pack", handlers.ExportReportReceiptPack)
+	reportRouter.Post("/{reportId}/export/xlsx", handlers.ExportReportXlsx)
 
 	return reportRouter
 }
