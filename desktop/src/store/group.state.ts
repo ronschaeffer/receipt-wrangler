@@ -76,6 +76,11 @@ export class GroupState {
   }
 
   @Selector()
+  static reportsLink(state: GroupStateInterface): string {
+    return `/reports/group/${state.selectedGroupId}`;
+  }
+
+  @Selector()
   static settingsLinkBase(state: GroupStateInterface): string {
     return `/groups/${state.selectedGroupId}/settings`;
   }

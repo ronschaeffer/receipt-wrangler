@@ -33,6 +33,16 @@
       >
         <mat-icon>receipt_long</mat-icon>
       </button>
+      <button
+        mat-icon-button
+        color="accent"
+        class="nav-button"
+        matTooltip="Expense Reports"
+        routerLinkActive="active-link"
+        [routerLink]="reportsHeaderLink()"
+      >
+        <mat-icon>summarize</mat-icon>
+      </button>
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a [href]="shortcut.url">
           <button
