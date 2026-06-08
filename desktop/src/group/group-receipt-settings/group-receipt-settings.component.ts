@@ -1,11 +1,11 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder } from "@angular/forms";
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import { BaseFormComponent } from "../../form/index";
-import { Group, GroupRole, GroupsService } from "../../open-api/index";
+import { Group, GroupRole, GroupsService, GroupTaxRule } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { UpdateGroup } from "../../store/index";
 import { GroupUtil } from "../../utils/index";
@@ -53,6 +53,12 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
       hideShareCategories: [receiptSettings.hideShareCategories ?? false],
       hideShareTags: [receiptSettings.hideShareTags ?? false],
       hideComments: [receiptSettings.hideComments ?? false],
+      homeCurrency: [receiptSettings.homeCurrency ?? "GBP"],
+      usePrintedTax: [receiptSettings.usePrintedTax ?? true],
+      defaultTaxRate: [receiptSettings.defaultTaxRate ?? null],
+      taxRules: this.formBuilder.array(
+        (receiptSettings.taxRules ?? []).map((rule) => this.buildTaxRuleFormGroup(rule))
+      ),
     });
 
     if (this.formConfig.mode != FormMode.edit) {
@@ -63,6 +69,32 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
   private setOriginalGroup(): void {
     this.originalGroup = this.activatedRoute.snapshot.data["group"];
     this.editLink = `/groups/${this.originalGroup.id}/receipt-settings/edit`;
+  }
+
+  public get taxRulesFormArray(): FormArray {
+    return this.form.get("taxRules") as FormArray;
+  }
+
+  public asFormGroup(control: AbstractControl): FormGroup {
+    return control as FormGroup;
+  }
+
+  private buildTaxRuleFormGroup(rule?: GroupTaxRule): FormGroup {
+    return this.formBuilder.group({
+      countryCode: [rule?.countryCode ?? ""],
+      reclaimable: [rule?.reclaimable ?? false],
+      requireTaxId: [rule?.requireTaxId ?? false],
+      defaultRate: [rule?.defaultRate ?? null],
+      label: [rule?.label ?? ""],
+    });
+  }
+
+  public addTaxRule(): void {
+    this.taxRulesFormArray.push(this.buildTaxRuleFormGroup());
+  }
+
+  public removeTaxRule(index: number): void {
+    this.taxRulesFormArray.removeAt(index);
   }
 
   public submit(): void {

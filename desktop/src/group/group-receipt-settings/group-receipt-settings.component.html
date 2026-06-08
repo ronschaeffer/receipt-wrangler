@@ -51,4 +51,72 @@
       [inputFormControl]="form | formGet: 'hideComments'"
     ></app-checkbox>
   </app-form-section>
+  <app-form-section
+    headerText="Expense Reporting"
+  >
+    <app-input
+      label="Home Currency"
+      hint="ISO 4217 code (e.g. GBP, EUR, USD). Receipts in other currencies are treated as foreign in reports."
+      [inputFormControl]="form | formGet: 'homeCurrency'"
+      [readonly]="formConfig.mode | inputReadonly"
+    ></app-input>
+    <app-checkbox
+      label="Prefer printed tax"
+      [inputFormControl]="form | formGet: 'usePrintedTax'"
+    ></app-checkbox>
+    <app-input
+      label="Default Tax Rate"
+      type="number"
+      hint="Fallback rate (e.g. 0.20) used only when a receipt has no printed tax."
+      [inputFormControl]="form | formGet: 'defaultTaxRate'"
+      [readonly]="formConfig.mode | inputReadonly"
+    ></app-input>
+  </app-form-section>
+  <app-form-section
+    headerText="Tax Rules by Country"
+  >
+    @for (rule of taxRulesFormArray.controls; track $index) {
+      <div [formGroup]="asFormGroup(rule)" class="tax-rule-row">
+        <app-input
+          label="Country Code"
+          hint="ISO 3166-1 alpha-2 (e.g. GB, US, ES)"
+          [inputFormControl]="asFormGroup(rule) | formGet: 'countryCode'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-input
+          label="Label"
+          [inputFormControl]="asFormGroup(rule) | formGet: 'label'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-input
+          label="Default Rate"
+          type="number"
+          [inputFormControl]="asFormGroup(rule) | formGet: 'defaultRate'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-checkbox
+          label="Reclaimable"
+          [inputFormControl]="asFormGroup(rule) | formGet: 'reclaimable'"
+        ></app-checkbox>
+        <app-checkbox
+          label="Require Tax Id"
+          [inputFormControl]="asFormGroup(rule) | formGet: 'requireTaxId'"
+        ></app-checkbox>
+        @if (formConfig.mode === FormMode.edit) {
+          <app-button
+            buttonText="Remove"
+            color="warn"
+            (clicked)="removeTaxRule($index)"
+          ></app-button>
+        }
+      </div>
+    }
+    @if (formConfig.mode === FormMode.edit) {
+      <app-button
+        buttonText="Add tax rule"
+        color="accent"
+        (clicked)="addTaxRule()"
+      ></app-button>
+    }
+  </app-form-section>
 </ng-template>
