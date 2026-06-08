@@ -60,6 +60,10 @@
   >{{ element.date | date: "mediumDate" }}
 </ng-template>
 
+<ng-template #currencyCell let-element="element"
+  >{{ element.currency || "—" }}
+</ng-template>
+
 <ng-template #actionsCell let-element="element">
   <app-delete-button
     tooltip="Remove from report"

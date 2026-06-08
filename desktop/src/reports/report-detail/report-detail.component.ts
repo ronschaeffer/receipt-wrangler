@@ -40,6 +40,9 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
 
   public readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
+  public readonly currencyCell =
+    viewChild.required<TemplateRef<any>>("currencyCell");
+
   public readonly actionsCell =
     viewChild.required<TemplateRef<any>>("actionsCell");
 
@@ -114,6 +117,12 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
         sortable: false,
       },
       {
+        columnHeader: "Currency",
+        matColumnDef: "currency",
+        template: this.currencyCell(),
+        sortable: false,
+      },
+      {
         columnHeader: "Actions",
         matColumnDef: "actions",
         template: this.actionsCell(),
@@ -121,7 +130,7 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
       },
     ] as TableColumn[];
 
-    this.displayedColumns = ["name", "amount", "date", "actions"];
+    this.displayedColumns = ["name", "amount", "date", "currency", "actions"];
   }
 
   public updateStatus(status: ReportStatus): void {
