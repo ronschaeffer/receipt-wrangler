@@ -48,6 +48,25 @@ func (repository GroupReceiptSettingsRepository) GetGroupReceiptSettings(groupId
 	return groupReceiptSettings, nil
 }
 
+// SetReportTemplate records (or clears) the uploaded custom report template
+// metadata for a group. Pass empty name/templateType to clear it.
+func (repository GroupReceiptSettingsRepository) SetReportTemplate(groupId string, name string, templateType string) (models.GroupReceiptSettings, error) {
+	db := repository.GetDB()
+
+	var groupReceiptSettings models.GroupReceiptSettings
+	if err := db.Where("group_id = ?", groupId).First(&groupReceiptSettings).Error; err != nil {
+		return models.GroupReceiptSettings{}, err
+	}
+
+	groupReceiptSettings.ReportTemplateName = name
+	groupReceiptSettings.ReportTemplateType = templateType
+	if err := db.Model(&groupReceiptSettings).Select("ReportTemplateName", "ReportTemplateType").Updates(&groupReceiptSettings).Error; err != nil {
+		return models.GroupReceiptSettings{}, err
+	}
+
+	return groupReceiptSettings, nil
+}
+
 func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 	groupId string,
 	command commands.UpdateGroupReceiptSettingsCommand,

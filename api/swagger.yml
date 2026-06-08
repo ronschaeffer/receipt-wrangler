@@ -772,6 +772,66 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /group/{groupId}/report-template:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Group Id
+    post:
+      tags:
+        - Groups
+      summary: Upload a custom expense-report template
+      description: Upload an .xlsx or .csv template used for the group's custom report export
+      operationId: uploadReportTemplate
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Updated group receipt settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupReceiptSettings"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - Groups
+      summary: Delete the custom expense-report template
+      description: Remove the group's uploaded custom report template
+      operationId: deleteReportTemplate
+      responses:
+        200:
+          description: Updated group receipt settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupReceiptSettings"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /group/getPagedGroups:
     post:
       tags:
@@ -2989,6 +3049,37 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /report/{reportId}/export/custom:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    post:
+      tags:
+        - Report
+      summary: Export report using the group's custom template
+      description: Renders the report's receipts into the group's uploaded custom template (xlsx or csv)
+      operationId: exportReportCustom
+      responses:
+        200:
+          description: A populated custom expense report (xlsx or csv)
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -4275,6 +4366,12 @@ components:
               description: Per-country tax treatment rules
               items:
                 $ref: "#/components/schemas/GroupTaxRule"
+            reportTemplateName:
+              type: string
+              description: Filename of the uploaded custom report template, if any
+            reportTemplateType:
+              type: string
+              description: Type of custom report template (xlsx or csv)
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
