@@ -17,6 +17,7 @@ import { TableComponent } from "src/table/table/table.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
 import { ReceiptTableColumnConfig } from "../../interfaces";
 import {
+  BulkReportReceiptCommand,
   BulkStatusUpdateCommand,
   Category,
   Group,
@@ -26,6 +27,7 @@ import {
   Receipt,
   ReceiptService,
   ReceiptStatus,
+  ReportService,
   Tag,
 } from "../../open-api";
 import { GroupRolePipe } from "../../pipes/group-role.pipe";
@@ -36,6 +38,7 @@ import { GroupState } from "../../store";
 import { applyFormCommand } from "../../utils/index";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-update-dialog.component";
+import { AddToReportDialogComponent } from "../add-to-report-dialog/add-to-report-dialog.component";
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
 
 @UntilDestroy()
@@ -58,6 +61,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     private receiptExportService: ReceiptExportService,
     private receiptFilterService: ReceiptFilterService,
     private receiptService: ReceiptService,
+    private reportService: ReportService,
     private router: Router,
     private snackbarService: SnackbarService,
     private store: Store,
@@ -485,6 +489,51 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
             }
           }
         )
+      )
+      .subscribe();
+  }
+
+  public openAddToReportDialog(): void {
+    const table = this.table();
+    if (!table.selection.hasValue()) {
+      return;
+    }
+
+    const receiptIds = (table.selection.selected as Receipt[]).map(
+      (r) => r.id as number
+    );
+
+    const ref = this.matDialog.open(
+      AddToReportDialogComponent,
+      DEFAULT_DIALOG_CONFIG
+    );
+    ref.componentInstance.groupId = this.groupId;
+
+    ref
+      .afterClosed()
+      .pipe(
+        take(1),
+        tap((reportId: number | undefined) => {
+          if (reportId === undefined || reportId === null) {
+            return;
+          }
+
+          const command: BulkReportReceiptCommand = {
+            receiptIds: receiptIds,
+          };
+
+          this.reportService
+            .addReceiptsToReport(reportId, command)
+            .pipe(
+              take(1),
+              tap((report) => {
+                this.snackbarService.success(
+                  `Added ${receiptIds.length} receipt(s) to ${report.name}`
+                );
+              })
+            )
+            .subscribe();
+        })
       )
       .subscribe();
   }

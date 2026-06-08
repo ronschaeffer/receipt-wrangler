@@ -83,6 +83,9 @@
         @if (canEdit) {
           <button mat-menu-item (click)="showStatusUpdateDialog()">Bulk Status Update</button>
         }
+        @if (canEdit) {
+          <button mat-menu-item (click)="openAddToReportDialog()">Add to Report</button>
+        }
       </mat-menu>
     }
   </div>

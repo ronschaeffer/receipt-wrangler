@@ -32,6 +32,7 @@ import { ExportButtonComponent } from "../standalone/components/export-button/ex
 import { FilteredStatefulMenuComponent } from "../standalone/components/filtered-stateful-menu/filtered-stateful-menu.component";
 import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.component";
 import { BulkStatusUpdateComponent } from "./bulk-resolve-dialog/bulk-status-update-dialog.component";
+import { AddToReportDialogComponent } from "./add-to-report-dialog/add-to-report-dialog.component";
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog/column-configuration-dialog.component";
 import { CustomFieldComponent } from "./custom-field/custom-field.component";
 import { ItemAddFormComponent } from "./item-add-form/item-add-form.component";
@@ -51,6 +52,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
 @NgModule({
   declarations: [
     BulkStatusUpdateComponent,
+    AddToReportDialogComponent,
     ColumnConfigurationDialogComponent,
     ItemAddFormComponent,
     ItemListComponent,
