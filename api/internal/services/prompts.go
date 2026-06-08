@@ -28,17 +28,26 @@ func (service PromptService) CreateDefaultPrompt() (models.Prompt, error) {
 	db.Model(models.Prompt{}).Where("name = ?", constants.DefaultPromptName).Count(&defaultPromptCount)
 
 	defaultPrompt := fmt.Sprintf(`
-Find the receipt's name, total cost, and date. Format the found data as:
+Find the receipt's name, total cost, currency, country, tax, and date. Format the found data as:
 {
 	"name": store name,
 	"amount": amount as a number,
-	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
+	"currency": ISO 4217 currency code printed on the receipt,
+	"originalAmount": amount as printed on the receipt, before any conversion,
+	"taxAmount": tax/VAT amount as printed on the receipt, as a number,
+	"supplierTaxId": supplier VAT/GST/tax registration number if shown,
+	"countryCode": ISO 3166-1 alpha-2 country code of the merchant, from the receipt's address or locale,
+	"date": date in ISO 8601 format in UTC with ALL time values set as 0,
 	"categories": categories,
 	"tags": tags
 }
 If a store name cannot be confidently found, use 'Default store name' as the default name.
 Omit any value if not found with confidence. Assume the date is in the year @currentYear if not provided.
 The amount must be a float or integer.
+For "currency": read it from the receipt (symbols, codes, tax labels, address/locale). Do NOT assume the currency is the home currency just because a local symbol appears. If the currency cannot be determined, omit the field (do not guess).
+For "amount": if the receipt shows a higher total actually charged (e.g. a tip was added), use that charged total, not the pre-tip subtotal.
+For "taxAmount" and "supplierTaxId": only include them if they are explicitly printed on the receipt; never infer or compute a tax amount that is not shown. Omit if absent.
+For "countryCode": determine it from the merchant address or locale on the receipt; omit if it cannot be determined.
 If the receipt represents a refund, return, or credit (money returned to the customer rather than charged), the amount and item amounts MUST be negative. Otherwise they are positive.
 
 Please do NOT add any additional information, only valid JSON.
