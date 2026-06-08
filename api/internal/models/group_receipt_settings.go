@@ -17,4 +17,9 @@ type GroupReceiptSettings struct {
 	UsePrintedTax         bool             `gorm:"not null;default:true" json:"usePrintedTax"`
 	DefaultTaxRate        *decimal.Decimal `gorm:"type:decimal(6,4)" json:"defaultTaxRate,omitempty"`
 	TaxRules              []GroupTaxRule   `json:"taxRules"`
+	// ReportTemplateName is the original filename of an uploaded custom report
+	// template (xlsx or csv); empty means no custom template is configured.
+	ReportTemplateName    string           `gorm:"type:varchar(255)" json:"reportTemplateName"`
+	// ReportTemplateType is the kind of custom template: "xlsx" or "csv".
+	ReportTemplateType    string           `gorm:"type:varchar(8)" json:"reportTemplateType"`
 }

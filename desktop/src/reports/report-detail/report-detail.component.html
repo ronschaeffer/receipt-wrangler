@@ -29,11 +29,13 @@
       color="primary"
       (clicked)="exportXlsx()"
     ></app-button>
-    <app-button
-      buttonText="Download CSV"
-      color="accent"
-      (clicked)="exportCsv()"
-    ></app-button>
+    @if (customTemplateType()) {
+      <app-button
+        buttonText="Download (custom template)"
+        color="accent"
+        (clicked)="exportCustom()"
+      ></app-button>
+    }
     <app-button
       buttonText="Download pack"
       color="accent"

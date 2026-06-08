@@ -98,6 +98,16 @@ func BuildGroupPathString(groupId string, groupName string) (string, error) {
 	return filepath.Join(basePath, "data", groupPath), nil
 }
 
+// BuildReportTemplatePath returns the on-disk path for a group's uploaded
+// custom report template. ext should be "xlsx" or "csv".
+func BuildReportTemplatePath(groupId string, groupName string, ext string) (string, error) {
+	groupPath, err := BuildGroupPathString(groupId, groupName)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(groupPath, "report-template."+ext), nil
+}
+
 func BuildFileName(rid string, fid string, fname string) string {
 	return rid + "-" + fid + "-" + fname
 }

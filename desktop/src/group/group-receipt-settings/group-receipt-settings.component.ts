@@ -97,6 +97,44 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     this.taxRulesFormArray.removeAt(index);
   }
 
+  public get currentTemplateName(): string {
+    return this.originalGroup.groupReceiptSettings?.reportTemplateName ?? "";
+  }
+
+  public onTemplateSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.groupsService
+      .uploadReportTemplate(this.originalGroup.id, file)
+      .pipe(
+        take(1),
+        switchMap((updated) => {
+          this.originalGroup.groupReceiptSettings = updated;
+          return this.store.dispatch(new UpdateGroup(this.originalGroup));
+        }),
+        tap(() => this.snackbarService.success("Custom report template uploaded"))
+      )
+      .subscribe();
+    input.value = "";
+  }
+
+  public removeTemplate(): void {
+    this.groupsService
+      .deleteReportTemplate(this.originalGroup.id)
+      .pipe(
+        take(1),
+        switchMap((updated) => {
+          this.originalGroup.groupReceiptSettings = updated;
+          return this.store.dispatch(new UpdateGroup(this.originalGroup));
+        }),
+        tap(() => this.snackbarService.success("Custom report template removed"))
+      )
+      .subscribe();
+  }
+
   public submit(): void {
     if (this.form.valid) {
       this.groupsService.updateGroupReceiptSettings(this.originalGroup.id,

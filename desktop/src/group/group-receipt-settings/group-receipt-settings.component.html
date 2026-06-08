@@ -71,6 +71,26 @@
       [inputFormControl]="form | formGet: 'defaultTaxRate'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-input>
+    <div class="custom-template-row">
+      <span>
+        Custom report template:
+        <strong>{{ currentTemplateName || "none" }}</strong>
+      </span>
+      @if (formConfig.mode === FormMode.edit) {
+        <input
+          type="file"
+          accept=".xlsx,.csv"
+          (change)="onTemplateSelected($event)"
+        />
+        @if (currentTemplateName) {
+          <app-button
+            buttonText="Remove template"
+            color="warn"
+            (clicked)="removeTemplate()"
+          ></app-button>
+        }
+      }
+    </div>
   </app-form-section>
   <app-form-section
     headerText="Tax Rules by Country"

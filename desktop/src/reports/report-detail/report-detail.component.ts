@@ -23,6 +23,7 @@ import {
   UpsertReportCommand,
 } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { GroupState } from "../../store";
 import { UpdateReport } from "../../store/report.state.actions";
 import { downloadFile } from "../../utils/file";
 
@@ -60,6 +61,8 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
 
   public reportId!: number;
 
+  public customTemplateType = signal<string>("");
+
   public backLink: string[] = [];
 
   constructor(
@@ -75,10 +78,17 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
     this.reportId = Number(this.activatedRoute.snapshot.params["reportId"]);
     this.backLink = ["/reports", "group", this.groupId];
     this.getReport();
+    this.loadCustomTemplateType();
   }
 
   public ngAfterViewInit(): void {
     this.setColumns();
+  }
+
+  private loadCustomTemplateType(): void {
+    const groups = this.store.selectSnapshot(GroupState.groups);
+    const group = groups.find((g) => String(g.id) === String(this.groupId));
+    this.customTemplateType.set(group?.groupReceiptSettings?.reportTemplateType ?? "");
   }
 
   private getReport(): void {
@@ -211,14 +221,15 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  public exportCsv(): void {
+  public exportCustom(): void {
     this.reportService
-      .exportReportCsv(this.reportId)
+      .exportReportCustom(this.reportId)
       .pipe(
         take(1),
         tap((blob) => {
           const name = this.report()?.name ?? "report";
-          downloadFile(blob, `${name}-receipts.zip`);
+          const ext = this.customTemplateType() === "csv" ? "csv" : "xlsx";
+          downloadFile(blob, `${name}-expense-report.${ext}`);
         })
       )
       .subscribe();

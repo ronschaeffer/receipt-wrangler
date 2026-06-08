@@ -71,5 +71,13 @@ export interface GroupReceiptSettings {
      * Per-country tax treatment rules
      */
     taxRules?: Array<GroupTaxRule>;
+    /**
+     * Filename of the uploaded custom report template, if any
+     */
+    reportTemplateName?: string;
+    /**
+     * Type of custom report template (xlsx or csv)
+     */
+    reportTemplateType?: string;
 }
 
