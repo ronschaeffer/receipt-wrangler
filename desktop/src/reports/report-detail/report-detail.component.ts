@@ -6,12 +6,16 @@ import {
   TemplateRef,
   viewChild,
 } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { take, tap } from "rxjs";
+import { of, switchMap, take, tap } from "rxjs";
+import { DEFAULT_DIALOG_CONFIG } from "src/constants";
+import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TableColumn } from "src/table/table-column.interface";
 import {
+  BulkReportReceiptCommand,
   Receipt,
   Report,
   ReportService,
@@ -36,6 +40,9 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
 
   public readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
+  public readonly actionsCell =
+    viewChild.required<TemplateRef<any>>("actionsCell");
+
   public report = signal<Report | undefined>(undefined);
 
   public dataSource = signal(new MatTableDataSource<Receipt>([]));
@@ -56,7 +63,8 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
     private reportService: ReportService,
     private snackbarService: SnackbarService,
     private store: Store,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private matDialog: MatDialog
   ) {}
 
   public ngOnInit(): void {
@@ -105,9 +113,15 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
         template: this.dateCell(),
         sortable: false,
       },
+      {
+        columnHeader: "Actions",
+        matColumnDef: "actions",
+        template: this.actionsCell(),
+        sortable: false,
+      },
     ] as TableColumn[];
 
-    this.displayedColumns = ["name", "amount", "date"];
+    this.displayedColumns = ["name", "amount", "date", "actions"];
   }
 
   public updateStatus(status: ReportStatus): void {
@@ -130,6 +144,46 @@ export class ReportDetailComponent implements OnInit, AfterViewInit {
           this.report.set(updated);
           this.store.dispatch(new UpdateReport(updated));
           this.snackbarService.success("Report updated successfully");
+        })
+      )
+      .subscribe();
+  }
+
+  public removeReceipt(receipt: Receipt): void {
+    const dialogRef = this.matDialog.open(
+      ConfirmationDialogComponent,
+      DEFAULT_DIALOG_CONFIG
+    );
+
+    dialogRef.componentInstance.headerText = "Remove receipt";
+    dialogRef.componentInstance.dialogContent = `Remove ${receipt.name} from this report? The receipt itself will not be deleted.`;
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        switchMap((confirmed) => {
+          if (!confirmed) {
+            return of(undefined);
+          }
+
+          const command: BulkReportReceiptCommand = {
+            receiptIds: [receipt.id as number],
+          };
+
+          return this.reportService
+            .removeReceiptsFromReport(this.reportId, command)
+            .pipe(
+              take(1),
+              tap((report) => {
+                this.report.set(report);
+                this.store.dispatch(new UpdateReport(report));
+                this.dataSource.set(
+                  new MatTableDataSource<Receipt>(report.receipts ?? [])
+                );
+                this.snackbarService.success("Receipt removed from report");
+              })
+            );
         })
       )
       .subscribe();

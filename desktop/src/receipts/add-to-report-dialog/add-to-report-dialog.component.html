@@ -1,0 +1,22 @@
+<app-dialog headerText="Add to report">
+  <form [formGroup]="form">
+    @if (!loading && reportOptions.length === 0) {
+      <p class="no-reports-message">
+        This group has no expense reports yet. Create one from the Expense
+        Reports page first, then add receipts to it.
+      </p>
+    } @else {
+      <app-select
+        label="Report"
+        [inputFormControl]="form | formGet : 'reportId'"
+        [options]="reportOptions"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+      ></app-select>
+    }
+    <app-dialog-footer
+      (submitClicked)="submitButtonClicked()"
+      (cancelClicked)="cancelButtonClicked()"
+    ></app-dialog-footer>
+  </form>
+</app-dialog>

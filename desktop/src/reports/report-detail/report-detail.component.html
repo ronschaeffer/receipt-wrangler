@@ -54,3 +54,10 @@
 <ng-template #dateCell let-element="element"
   >{{ element.date | date: "mediumDate" }}
 </ng-template>
+
+<ng-template #actionsCell let-element="element">
+  <app-delete-button
+    tooltip="Remove from report"
+    (clicked)="removeReceipt(element)"
+  ></app-delete-button>
+</ng-template>
