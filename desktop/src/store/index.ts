@@ -5,5 +5,7 @@ export * from "./feature-config.state.actions";
 export * from "./feature-config.state";
 export * from "./group.state.actions";
 export * from "./group.state";
+export * from "./report.state.actions";
+export * from "./report.state";
 export * from "./user.state.actions";
 export * from "./user.state";

@@ -70,6 +70,15 @@ export class SidebarComponent {
     this.matDialog.open(ImportFormComponent, DEFAULT_DIALOG_CONFIG);
   }
 
+  public openReports(): void {
+    const groupId = this.selectedGroupId() ?? this.groups()[0]?.id?.toString();
+    if (!groupId) {
+      this.snackbarService.error("Select a group to view its reports");
+      return;
+    }
+    this.router.navigate(["/reports", "group", groupId]);
+  }
+
   public openAboutDialog(): void {
     this.matDialog.open(AboutComponent, DEFAULT_DIALOG_CONFIG);
   }

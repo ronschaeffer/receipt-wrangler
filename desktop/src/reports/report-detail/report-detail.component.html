@@ -1,0 +1,56 @@
+<app-table-header [headerText]="report()?.name ?? 'Report'">
+  <app-back-button [buttonRouterLink]="backLink"></app-back-button>
+</app-table-header>
+
+<div class="report-detail" *ngIf="report() as r">
+  <div class="report-detail__meta">
+    <span class="report-status report-status--{{ r.status | lowercase }}">{{
+      r.status
+    }}</span>
+    <span *ngIf="r.submittedDate"
+      >Submitted: {{ r.submittedDate | date: "mediumDate" }}</span
+    >
+    <span *ngIf="r.paidDate">Paid: {{ r.paidDate | date: "mediumDate" }}</span>
+  </div>
+
+  <div class="report-detail__actions">
+    <app-button
+      *ngIf="r.status === reportStatus.Draft"
+      buttonText="Submit"
+      (clicked)="updateStatus(reportStatus.Submitted)"
+    ></app-button>
+    <app-button
+      *ngIf="r.status === reportStatus.Submitted"
+      buttonText="Mark paid"
+      (clicked)="updateStatus(reportStatus.Paid)"
+    ></app-button>
+    <app-button
+      buttonText="Download CSV"
+      color="accent"
+      (clicked)="exportCsv()"
+    ></app-button>
+    <app-button
+      buttonText="Download pack"
+      color="accent"
+      (clicked)="exportPack()"
+    ></app-button>
+  </div>
+
+  <div class="table-container">
+    <app-table
+      [columns]="columns"
+      [displayedColumns]="displayedColumns"
+      [dataSource]="dataSource()"
+    ></app-table>
+  </div>
+</div>
+
+<ng-template #nameCell let-element="element">{{ element.name }}</ng-template>
+
+<ng-template #amountCell let-element="element"
+  >{{ element.amount | currency }}
+</ng-template>
+
+<ng-template #dateCell let-element="element"
+  >{{ element.date | date: "mediumDate" }}
+</ng-template>
