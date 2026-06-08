@@ -55,8 +55,33 @@ func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 	groupReceiptSettings.HideComments = command.HideComments
 	groupReceiptSettings.HideShareCategories = command.HideShareCategories
 	groupReceiptSettings.HideShareTags = command.HideShareTags
+	groupReceiptSettings.HomeCurrency = command.HomeCurrency
+	groupReceiptSettings.UsePrintedTax = command.UsePrintedTax
+	groupReceiptSettings.DefaultTaxRate = command.DefaultTaxRate
+	groupReceiptSettings.TaxRules = command.TaxRules
 
-	err = db.Select("*").Model(*&groupReceiptSettings).Updates(groupReceiptSettings).Error
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if txErr := tx.Session(&gorm.Session{FullSaveAssociations: false}).Omit("TaxRules").Select("*").Model(&groupReceiptSettings).Updates(&groupReceiptSettings).Error; txErr != nil {
+			return txErr
+		}
+
+		// True replace: drop existing rules for this settings row, then insert the new set.
+		if txErr := tx.Where("group_receipt_settings_id = ?", groupReceiptSettings.ID).Delete(&models.GroupTaxRule{}).Error; txErr != nil {
+			return txErr
+		}
+
+		for i := range groupReceiptSettings.TaxRules {
+			groupReceiptSettings.TaxRules[i].ID = 0
+			groupReceiptSettings.TaxRules[i].GroupReceiptSettingsId = groupReceiptSettings.ID
+		}
+		if len(groupReceiptSettings.TaxRules) > 0 {
+			if txErr := tx.Create(&groupReceiptSettings.TaxRules).Error; txErr != nil {
+				return txErr
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return models.GroupReceiptSettings{}, err
 	}
