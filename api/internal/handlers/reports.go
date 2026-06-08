@@ -356,6 +356,52 @@ func ExportReportReceiptPack(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+// ExportReportXlsx returns the report as a populated expense-report workbook
+// (.xlsx), reproducing the standard four-sheet layout and applying the group's
+// home currency and tax rules.
+func ExportReportXlsx(w http.ResponseWriter, r *http.Request) {
+	reportId, groupId, err := resolveReportAndGroup(r)
+	if err != nil {
+		utils.WriteCustomErrorResponse(w, "Report not found", http.StatusNotFound)
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage: "Error exporting report",
+		Writer:       w,
+		Request:      r,
+		GroupId:      utils.UintToString(groupId),
+		GroupRole:    models.VIEWER,
+		ResponseType: constants.ApplicationXlsx,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			reportRepository := repositories.NewReportRepository(nil)
+			report, err := reportRepository.GetReportById(reportId, true)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			settingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
+			settings, err := settingsRepository.GetGroupReceiptSettings(utils.UintToString(groupId))
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			xlsxService := services.NewReportXlsxService(nil)
+			fileBytes, err := xlsxService.BuildReportXlsx(report, settings)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.Header().Set("Content-Disposition", "attachment; filename=expense-report.xlsx")
+			w.WriteHeader(http.StatusOK)
+			w.Write(fileBytes)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 // resolveReportAndGroup reads the {reportId} path param and looks up the
 // owning group so the handler can enforce group-scoped access against the
 // persisted report rather than trusting the request body.

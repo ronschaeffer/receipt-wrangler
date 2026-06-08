@@ -34,6 +34,20 @@ func (repository GroupReceiptSettingsRepository) CreateGroupReceiptSettings(grou
 	return groupReceiptSettingsToCreate, nil
 }
 
+// GetGroupReceiptSettings loads the receipt settings for a group, including
+// the associated tax rules, for use by reporting/export logic.
+func (repository GroupReceiptSettingsRepository) GetGroupReceiptSettings(groupId string) (models.GroupReceiptSettings, error) {
+	db := repository.GetDB()
+
+	var groupReceiptSettings models.GroupReceiptSettings
+	err := db.Model(&groupReceiptSettings).Where("group_id = ?", groupId).Preload(clause.Associations).First(&groupReceiptSettings).Error
+	if err != nil {
+		return models.GroupReceiptSettings{}, err
+	}
+
+	return groupReceiptSettings, nil
+}
+
 func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 	groupId string,
 	command commands.UpdateGroupReceiptSettingsCommand,
