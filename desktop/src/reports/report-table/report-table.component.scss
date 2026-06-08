@@ -1,0 +1,27 @@
+.table-container {
+  margin-top: 1rem;
+}
+
+.report-name-link {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.report-status {
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+
+  &--draft {
+    background-color: rgba(158, 158, 158, 0.2);
+  }
+
+  &--submitted {
+    background-color: rgba(33, 150, 243, 0.2);
+  }
+
+  &--paid {
+    background-color: rgba(76, 175, 80, 0.2);
+  }
+}

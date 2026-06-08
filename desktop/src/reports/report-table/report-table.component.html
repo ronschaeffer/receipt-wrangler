@@ -1,0 +1,38 @@
+<app-table-header [headerText]="headerText">
+  <app-add-button tooltip="Add report" (clicked)="openAddDialog()">
+  </app-add-button>
+</app-table-header>
+<div class="table-container">
+  <app-table
+    [columns]="columns"
+    [displayedColumns]="displayedColumns"
+    [dataSource]="dataSource()"
+  ></app-table>
+</div>
+
+<ng-template #nameCell let-element="element">
+  <a class="report-name-link" (click)="openReport(element)">{{
+    element.name
+  }}</a>
+</ng-template>
+
+<ng-template #statusCell let-element="element">
+  <span class="report-status report-status--{{ element.status | lowercase }}">{{
+    element.status
+  }}</span>
+</ng-template>
+
+<ng-template #submittedDateCell let-element="element"
+  >{{ element.submittedDate ? (element.submittedDate | date: "mediumDate") : "-" }}
+</ng-template>
+
+<ng-template #paidDateCell let-element="element"
+  >{{ element.paidDate ? (element.paidDate | date: "mediumDate") : "-" }}
+</ng-template>
+
+<ng-template #actionsCell let-element="element">
+  <app-delete-button
+    *appRole="'ADMIN'"
+    (clicked)="openDeleteConfirmationDialog(element)"
+  ></app-delete-button>
+</ng-template>

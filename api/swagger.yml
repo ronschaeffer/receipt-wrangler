@@ -2707,6 +2707,259 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /report/:
+    post:
+      tags:
+        - Report
+      summary: Create report
+      description: This will create a report
+      operationId: createReport
+      requestBody:
+        description: Report to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertReportCommand"
+      responses:
+        200:
+          description: The created report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        400:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /report/group/{groupId}:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: string
+        required: true
+        description: Id of group to get reports for
+    get:
+      tags:
+        - Report
+      summary: Get reports for a group
+      description: This will get all reports for a group
+      operationId: getReportsForGroup
+      responses:
+        200:
+          description: The group's reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /report/{reportId}:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    get:
+      tags:
+        - Report
+      summary: Get report
+      description: This will get a single report with its receipts
+      operationId: getReport
+      responses:
+        200:
+          description: The report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/Ok"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    put:
+      tags:
+        - Report
+      summary: Update report
+      description: This will update a report's name and status
+      operationId: updateReport
+      requestBody:
+        description: Report fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertReportCommand"
+      responses:
+        200:
+          description: The updated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - Report
+      summary: Delete report
+      description: This will delete a report; its receipts are not affected
+      operationId: deleteReport
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /report/{reportId}/receipts:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    post:
+      tags:
+        - Report
+      summary: Add receipts to report
+      description: This will add a set of receipts to a report
+      operationId: addReceiptsToReport
+      requestBody:
+        description: Receipt ids to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkReportReceiptCommand"
+      responses:
+        200:
+          description: The updated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - Report
+      summary: Remove receipts from report
+      description: This will remove a set of receipts from a report
+      operationId: removeReceiptsFromReport
+      requestBody:
+        description: Receipt ids to remove
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkReportReceiptCommand"
+      responses:
+        200:
+          description: The updated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /report/{reportId}/export/csv:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    post:
+      tags:
+        - Report
+      summary: Export report as CSV
+      description: This will export the report's receipts as a zipped CSV bundle
+      operationId: exportReportCsv
+      responses:
+        200:
+          description: A zip archive of CSV files
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /report/{reportId}/export/pack:
+    parameters:
+      - in: path
+        name: reportId
+        schema:
+          type: integer
+        required: true
+        description: Report id
+    post:
+      tags:
+        - Report
+      summary: Export report receipts pack
+      description: This will build a PDF with one labelled page per receipt in the report
+      operationId: exportReportReceiptPack
+      responses:
+        200:
+          description: A PDF receipts pack
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -5082,3 +5335,76 @@ components:
         filter:
           $ref: "#/components/schemas/ReceiptPagedRequestFilter"
           description: Optional filter for receipts
+    ReportStatus:
+      description: Status of an expense report
+      type: string
+      enum:
+        - "DRAFT"
+        - "SUBMITTED"
+        - "PAID"
+        - ""
+    Report:
+      required:
+        - id
+        - name
+        - groupId
+        - status
+      type: object
+      properties:
+        createdAt:
+          type: string
+        createdBy:
+          type: integer
+          format: uint64
+        id:
+          type: integer
+          format: uint64
+        name:
+          type: string
+          description: Name of the report
+        groupId:
+          type: integer
+          description: Group foreign key
+        status:
+          $ref: "#/components/schemas/ReportStatus"
+          description: Report lifecycle status
+        submittedDate:
+          type: string
+          description: When the report was marked submitted
+        paidDate:
+          type: string
+          description: When the report was marked paid
+        receipts:
+          type: array
+          description: Receipts assigned to the report
+          items:
+            $ref: "#/components/schemas/Receipt"
+        updatedAt:
+          type: string
+      description: A named, group-scoped collection of receipts for an expense claim
+    UpsertReportCommand:
+      required:
+        - name
+        - groupId
+      type: object
+      properties:
+        name:
+          type: string
+          description: Report name
+        groupId:
+          type: integer
+          description: Group foreign key
+        status:
+          $ref: "#/components/schemas/ReportStatus"
+          description: Optional status to set
+    BulkReportReceiptCommand:
+      required:
+        - receiptIds
+      type: object
+      properties:
+        receiptIds:
+          type: array
+          description: Receipt ids to add or remove
+          items:
+            type: integer
+            format: uint64
