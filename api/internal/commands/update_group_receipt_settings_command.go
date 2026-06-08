@@ -3,6 +3,8 @@ package commands
 import (
 	"encoding/json"
 	"net/http"
+	"github.com/shopspring/decimal"
+	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/utils"
 )
 
@@ -15,6 +17,10 @@ type UpdateGroupReceiptSettingsCommand struct {
 	HideComments          bool `json:"hideComments"`
 	HideShareCategories   bool `json:"hideShareCategories"`
 	HideShareTags         bool `json:"hideShareTags"`
+	HomeCurrency          string                 `json:"homeCurrency"`
+	UsePrintedTax         bool                   `json:"usePrintedTax"`
+	DefaultTaxRate        *decimal.Decimal       `json:"defaultTaxRate,omitempty"`
+	TaxRules              []models.GroupTaxRule  `json:"taxRules"`
 }
 
 func (command *UpdateGroupReceiptSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
