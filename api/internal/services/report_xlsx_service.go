@@ -110,15 +110,23 @@ func (service ReportXlsxService) buildRows(report models.Report, settings models
 			total:      receipt.Amount,
 		}
 
+		// Currency: prefer the group's designated currency custom field, else the
+		// receipt's own currency field, else home currency.
 		currency := homeCurrency
-		if receipt.Currency != nil && *receipt.Currency != "" {
+		if cfCurrency := currencyFromCustomField(receipt, settings.CurrencyCustomFieldId); cfCurrency != "" {
+			currency = cfCurrency
+		} else if receipt.Currency != nil && *receipt.Currency != "" {
 			currency = *receipt.Currency
 		}
 		row.currency = currency
 		row.isForeign = currency != homeCurrency
 		row.origAmount = receipt.OriginalAmount
 
-		if receipt.TaxAmount != nil {
+		// VAT: prefer the group's designated VAT (CURRENCY) custom field, else the
+		// receipt's own tax field.
+		if cfTax, ok := taxFromCustomField(receipt, settings.VatCustomFieldId); ok {
+			row.tax = cfTax
+		} else if receipt.TaxAmount != nil {
 			row.tax = *receipt.TaxAmount
 		}
 
@@ -441,4 +449,53 @@ func currencySymbol(code string) string {
 	default:
 		return code
 	}
+}
+
+
+// currencyFromCustomField resolves the currency code from a receipt's designated
+// currency custom field. For a SELECT field the value is the matching option's
+// text; for a TEXT field it's the string value. Returns "" if unset or the field
+// isn't designated.
+func currencyFromCustomField(receipt models.Receipt, fieldId *uint) string {
+	if fieldId == nil {
+		return ""
+	}
+	for _, cfv := range receipt.CustomFields {
+		if cfv.CustomFieldId != *fieldId {
+			continue
+		}
+		// TEXT value takes priority if present.
+		if cfv.StringValue != nil && *cfv.StringValue != "" {
+			return *cfv.StringValue
+		}
+		// SELECT value: resolve option id -> option text.
+		if cfv.SelectValue != nil {
+			for _, opt := range cfv.CustomField.Options {
+				if opt.ID == *cfv.SelectValue {
+					return opt.Value
+				}
+			}
+		}
+		return ""
+	}
+	return ""
+}
+
+// taxFromCustomField resolves the VAT amount from a receipt's designated VAT
+// (CURRENCY) custom field. The bool is false when the field isn't designated or
+// has no value, so the caller can fall back to the receipt's own tax field.
+func taxFromCustomField(receipt models.Receipt, fieldId *uint) (decimal.Decimal, bool) {
+	if fieldId == nil {
+		return decimal.Decimal{}, false
+	}
+	for _, cfv := range receipt.CustomFields {
+		if cfv.CustomFieldId != *fieldId {
+			continue
+		}
+		if cfv.CurrencyValue != nil {
+			return *cfv.CurrencyValue, true
+		}
+		return decimal.Decimal{}, false
+	}
+	return decimal.Decimal{}, false
 }

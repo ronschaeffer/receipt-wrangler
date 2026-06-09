@@ -59,5 +59,13 @@ export interface UpdateGroupReceiptSettingsCommand {
      * Per-country tax treatment rules
      */
     taxRules?: Array<GroupTaxRule>;
+    /**
+     * CURRENCY-type custom field id that holds the VAT amount for reports
+     */
+    vatCustomFieldId?: number;
+    /**
+     * SELECT/TEXT custom field id that holds the receipt currency for reports
+     */
+    currencyCustomFieldId?: number;
 }
 

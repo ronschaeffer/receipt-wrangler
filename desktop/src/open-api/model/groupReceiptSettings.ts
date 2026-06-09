@@ -79,5 +79,13 @@ export interface GroupReceiptSettings {
      * Type of custom report template (xlsx or csv)
      */
     reportTemplateType?: string;
+    /**
+     * CURRENCY-type custom field id that holds the VAT amount for reports
+     */
+    vatCustomFieldId?: number;
+    /**
+     * SELECT/TEXT custom field id that holds the receipt currency for reports
+     */
+    currencyCustomFieldId?: number;
 }
 

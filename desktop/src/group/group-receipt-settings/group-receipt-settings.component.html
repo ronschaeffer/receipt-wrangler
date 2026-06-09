@@ -71,6 +71,26 @@
       [inputFormControl]="form | formGet: 'defaultTaxRate'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-input>
+    <app-select
+      label="VAT custom field"
+      hint="Optional. A CURRENCY custom field whose value is used as the VAT amount in reports. Leave empty to use the receipt's own tax."
+      [options]="vatCustomFieldOptions"
+      optionValueKey="id"
+      optionDisplayKey="name"
+      [addEmptyOption]="true"
+      [inputFormControl]="form | formGet: 'vatCustomFieldId'"
+      [readonly]="formConfig.mode | inputReadonly"
+    ></app-select>
+    <app-select
+      label="Currency custom field"
+      hint="Optional. A SELECT or TEXT custom field whose value is used as the receipt currency in reports. Leave empty to use the receipt's own currency."
+      [options]="currencyCustomFieldOptions"
+      optionValueKey="id"
+      optionDisplayKey="name"
+      [addEmptyOption]="true"
+      [inputFormControl]="form | formGet: 'currencyCustomFieldId'"
+      [readonly]="formConfig.mode | inputReadonly"
+    ></app-select>
     <div class="custom-template-row">
       <span>
         Custom report template:
@@ -136,6 +156,36 @@
         buttonText="Add tax rule"
         color="accent"
         (clicked)="addTaxRule()"
+      ></app-button>
+    }
+  </app-form-section>
+  <app-form-section
+    headerText="Group Categories"
+  >
+    <p class="group-categories-hint">
+      Choose which categories this group uses. The AI receipt processor and the
+      receipt form are limited to the selected categories. Leave all unticked to
+      allow every category (the default).
+    </p>
+    <div class="group-categories-list">
+      @for (category of allCategories; track category.id) {
+        <label class="group-category-item">
+          <input
+            type="checkbox"
+            [checked]="isCategoryEnabled(category.id)"
+            [disabled]="formConfig.mode !== FormMode.edit"
+            (change)="toggleCategory(category.id)"
+          />
+          {{ category.name }}
+        </label>
+      }
+    </div>
+    @if (formConfig.mode === FormMode.edit) {
+      <app-button
+        buttonText="Save group categories"
+        color="accent"
+        [disabled]="savingCategories"
+        (clicked)="saveGroupCategories()"
       ></app-button>
     }
   </app-form-section>

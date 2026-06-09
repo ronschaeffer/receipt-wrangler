@@ -94,6 +94,7 @@ func MakeMigrations() error {
 		&models.FileData{},
 		&models.Tag{},
 		&models.Category{},
+		&models.GroupCategory{},
 		&models.Group{},
 		&models.GroupMember{},
 		&models.Comment{},

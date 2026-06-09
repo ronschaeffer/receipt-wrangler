@@ -108,6 +108,7 @@ model/report.ts
 model/reportStatus.ts
 model/resetPasswordCommand.ts
 model/searchResult.ts
+model/setGroupCategoriesRequest.ts
 model/signUpCommand.ts
 model/sortDirection.ts
 model/subjectLineRegex.ts

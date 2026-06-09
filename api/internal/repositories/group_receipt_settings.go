@@ -92,6 +92,8 @@ func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 	groupReceiptSettings.UsePrintedTax = command.UsePrintedTax
 	groupReceiptSettings.DefaultTaxRate = command.DefaultTaxRate
 	groupReceiptSettings.TaxRules = command.TaxRules
+	groupReceiptSettings.VatCustomFieldId = command.VatCustomFieldId
+	groupReceiptSettings.CurrencyCustomFieldId = command.CurrencyCustomFieldId
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		if txErr := tx.Session(&gorm.Session{FullSaveAssociations: false}).Omit("TaxRules").Select("*").Model(&groupReceiptSettings).Updates(&groupReceiptSettings).Error; txErr != nil {

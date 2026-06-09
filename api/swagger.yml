@@ -615,6 +615,71 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /group/{groupId}/categories:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Group Id
+    get:
+      tags:
+        - Groups
+      summary: Get the categories enabled for a group
+      description: Returns the categories enabled for the group (falls back to all categories if the group has configured none)
+      operationId: getGroupCategories
+      responses:
+        200:
+          description: Categories enabled for the group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    put:
+      tags:
+        - Groups
+      summary: Set the categories enabled for a group
+      description: Replaces the group's enabled-category set. An empty list clears the subset and restores the all-categories fallback.
+      operationId: setGroupCategories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryIds:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        200:
+          description: Updated categories enabled for the group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /group/{groupId}/pollGroupEmail:
     post:
       tags:
@@ -4372,6 +4437,14 @@ components:
             reportTemplateType:
               type: string
               description: Type of custom report template (xlsx or csv)
+            vatCustomFieldId:
+              type: integer
+              nullable: true
+              description: CURRENCY-type custom field id that holds the VAT amount for reports
+            currencyCustomFieldId:
+              type: integer
+              nullable: true
+              description: SELECT/TEXT custom field id that holds the receipt currency for reports
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
@@ -4413,6 +4486,14 @@ components:
           description: Per-country tax treatment rules
           items:
             $ref: "#/components/schemas/GroupTaxRule"
+        vatCustomFieldId:
+          type: integer
+          nullable: true
+          description: CURRENCY-type custom field id that holds the VAT amount for reports
+        currencyCustomFieldId:
+          type: integer
+          nullable: true
+          description: SELECT/TEXT custom field id that holds the receipt currency for reports
     GroupTaxRule:
       allOf:
         - $ref: "#/components/schemas/BaseModel"

@@ -51,6 +51,7 @@ func (repository ReportRepository) GetReportById(reportId uint, loadReceipts boo
 			Preload("Receipts.ReceiptItems").
 			Preload("Receipts.CustomFields").
 			Preload("Receipts.CustomFields.CustomField").
+			Preload("Receipts.CustomFields.CustomField.Options").
 			Preload("Receipts")
 	}
 

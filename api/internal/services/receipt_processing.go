@@ -271,8 +271,49 @@ func (service ReceiptProcessingService) processImages(
 		return result, err
 	}
 
+	// Guard against the AI returning a category outside the group's enabled set
+	// (or a hallucinated id). Even though the prompt is scoped, enforce it on the
+	// apply side so a stray category can never be attached to the receipt.
+	receipt.Categories = service.filterCategoriesToGroup(receipt.Categories)
+
 	result.Receipt = receipt
 	return result, nil
+}
+
+// filterCategoriesToGroup drops any AI-suggested category whose id is not part
+// of the receipt's group enabled set. A category with a nil id is dropped (the
+// AI is instructed to return ids). When the group has no configured subset
+// (empty set returned with a zero join count), all real category ids are
+// allowed — matching getCategoriesString's fallback.
+func (service ReceiptProcessingService) filterCategoriesToGroup(categories []commands.UpsertCategoryCommand) []commands.UpsertCategoryCommand {
+	if len(categories) == 0 {
+		return categories
+	}
+	if service.Group.ID == 0 {
+		return categories
+	}
+
+	categoryRepository := repositories.NewCategoryRepository(nil)
+	groupIdStr := utils.UintToString(service.Group.ID)
+
+	// Allowed = the group's resolved category set (subset if configured, else all).
+	allowedCategories, err := categoryRepository.GetCategoriesForGroup(groupIdStr, "id")
+	if err != nil {
+		// On error, be conservative and keep nothing rather than risk a stray.
+		return []commands.UpsertCategoryCommand{}
+	}
+	allowed := make(map[uint]bool, len(allowedCategories))
+	for _, c := range allowedCategories {
+		allowed[c.ID] = true
+	}
+
+	filtered := make([]commands.UpsertCategoryCommand, 0, len(categories))
+	for _, c := range categories {
+		if c.Id != nil && allowed[*c.Id] {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
 }
 
 func (service ReceiptProcessingService) cleanResponse(response string) string {
@@ -525,7 +566,17 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string,
 
 func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 	categoryRepository := repositories.NewCategoryRepository(nil)
-	categories, err := categoryRepository.GetAllCategories("id, name, description")
+
+	// Scope the categories offered to the AI to the receipt's group when known,
+	// so the model can only choose from that group's enabled set (falls back to
+	// all categories for a group with no configured subset).
+	var categories []models.Category
+	var err error
+	if service.Group.ID > 0 {
+		categories, err = categoryRepository.GetCategoriesForGroup(utils.UintToString(service.Group.ID), "id, name, description")
+	} else {
+		categories, err = categoryRepository.GetAllCategories("id, name, description")
+	}
 	if err != nil {
 		return "", err
 	}

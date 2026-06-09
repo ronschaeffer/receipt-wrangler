@@ -2,10 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { switchMap, take, tap } from "rxjs";
+import { forkJoin, switchMap, take, tap } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import { BaseFormComponent } from "../../form/index";
-import { Group, GroupRole, GroupsService, GroupTaxRule } from "../../open-api/index";
+import { Category, CategoryService, CustomField, CustomFieldService, CustomFieldType, Group, GroupRole, GroupsService, GroupTaxRule } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { UpdateGroup } from "../../store/index";
 import { GroupUtil } from "../../utils/index";
@@ -23,8 +23,19 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
 
   public canEdit = false;
 
+  // #1 VAT/currency via custom fields: candidate custom fields for the dropdowns.
+  public vatCustomFieldOptions: CustomField[] = [];
+  public currencyCustomFieldOptions: CustomField[] = [];
+
+  // #5 group-scoped categories: all categories + the group's enabled-id set.
+  public allCategories: Category[] = [];
+  public enabledCategoryIds = new Set<number>();
+  public savingCategories = false;
+
   constructor(
     private activatedRoute: ActivatedRoute,
+    private categoryService: CategoryService,
+    private customFieldService: CustomFieldService,
     private formBuilder: FormBuilder,
     private groupUtil: GroupUtil,
     private groupsService: GroupsService,
@@ -40,6 +51,79 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     this.setOriginalGroup();
     this.initForm();
     this.canEdit = this.groupUtil.hasGroupAccess(this.originalGroup.id, GroupRole.Owner, false, false);
+    this.loadCustomFieldOptions();
+    this.loadCategoryConfiguration();
+  }
+
+  // Fetch all custom fields and split into VAT (CURRENCY) and currency
+  // (SELECT or TEXT) candidates for the report-mapping dropdowns.
+  private loadCustomFieldOptions(): void {
+    this.customFieldService
+      .getPagedCustomFields({ page: 1, pageSize: 1000 })
+      .pipe(take(1))
+      .subscribe((paged) => {
+        const fields = (paged?.data ?? []) as CustomField[];
+        this.vatCustomFieldOptions = fields.filter((f) => f.type === CustomFieldType.Currency);
+        this.currencyCustomFieldOptions = fields.filter(
+          (f) => f.type === CustomFieldType.Select || f.type === CustomFieldType.Text
+        );
+      });
+  }
+
+  // Load the full category list and the group's currently-enabled set.
+  private loadCategoryConfiguration(): void {
+    forkJoin({
+      all: this.categoryService.getAllCategories().pipe(take(1)),
+      enabled: this.groupsService.getGroupCategories(this.originalGroup.id).pipe(take(1)),
+    }).subscribe(({ all, enabled }) => {
+      this.allCategories = all ?? [];
+      // If the group has no explicit subset, the API returns all categories
+      // (the fallback). Treat "enabled == all" as "none configured" so the UI
+      // shows an unticked list the owner can opt into, rather than everything
+      // ticked. We detect this by comparing counts.
+      const enabledList = enabled ?? [];
+      if (enabledList.length === this.allCategories.length) {
+        this.enabledCategoryIds = new Set<number>();
+      } else {
+        this.enabledCategoryIds = new Set<number>(
+          enabledList.map((c) => c.id).filter((id): id is number => id != null)
+        );
+      }
+    });
+  }
+
+  public isCategoryEnabled(categoryId?: number): boolean {
+    return categoryId != null && this.enabledCategoryIds.has(categoryId);
+  }
+
+  public toggleCategory(categoryId?: number): void {
+    if (categoryId == null) {
+      return;
+    }
+    if (this.enabledCategoryIds.has(categoryId)) {
+      this.enabledCategoryIds.delete(categoryId);
+    } else {
+      this.enabledCategoryIds.add(categoryId);
+    }
+  }
+
+  // Persist the group's enabled-category set via the dedicated endpoint
+  // (separate from the receipt-settings form submit).
+  public saveGroupCategories(): void {
+    this.savingCategories = true;
+    this.groupsService
+      .setGroupCategories(this.originalGroup.id, { categoryIds: Array.from(this.enabledCategoryIds) })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.savingCategories = false;
+          this.snackbarService.success("Group categories updated");
+        },
+        error: () => {
+          this.savingCategories = false;
+          this.snackbarService.error("Failed to update group categories");
+        },
+      });
   }
 
   private initForm(): void {
@@ -59,6 +143,8 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
       taxRules: this.formBuilder.array(
         (receiptSettings.taxRules ?? []).map((rule) => this.buildTaxRuleFormGroup(rule))
       ),
+      vatCustomFieldId: [receiptSettings.vatCustomFieldId ?? null],
+      currencyCustomFieldId: [receiptSettings.currencyCustomFieldId ?? null],
     });
 
     if (this.formConfig.mode != FormMode.edit) {

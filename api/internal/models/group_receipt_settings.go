@@ -22,4 +22,11 @@ type GroupReceiptSettings struct {
 	ReportTemplateName    string           `gorm:"type:varchar(255)" json:"reportTemplateName"`
 	// ReportTemplateType is the kind of custom template: "xlsx" or "csv".
 	ReportTemplateType    string           `gorm:"type:varchar(8)" json:"reportTemplateType"`
+	// VatCustomFieldId designates which CURRENCY-type custom field holds the VAT
+	// amount for expense reports; nil means use the receipt's own tax field.
+	VatCustomFieldId      *uint            `json:"vatCustomFieldId"`
+	// CurrencyCustomFieldId designates which SELECT/TEXT-type custom field holds
+	// the receipt currency for expense reports; nil means use the receipt's own
+	// currency field.
+	CurrencyCustomFieldId *uint            `json:"currencyCustomFieldId"`
 }

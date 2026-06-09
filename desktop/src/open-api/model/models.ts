@@ -75,6 +75,7 @@ export * from './report';
 export * from './reportStatus';
 export * from './resetPasswordCommand';
 export * from './searchResult';
+export * from './setGroupCategoriesRequest';
 export * from './signUpCommand';
 export * from './sortDirection';
 export * from './subjectLineRegex';

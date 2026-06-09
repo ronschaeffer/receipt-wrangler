@@ -21,6 +21,8 @@ type UpdateGroupReceiptSettingsCommand struct {
 	UsePrintedTax         bool                   `json:"usePrintedTax"`
 	DefaultTaxRate        *decimal.Decimal       `json:"defaultTaxRate,omitempty"`
 	TaxRules              []models.GroupTaxRule  `json:"taxRules"`
+	VatCustomFieldId      *uint                  `json:"vatCustomFieldId"`
+	CurrencyCustomFieldId *uint                  `json:"currencyCustomFieldId"`
 }
 
 func (command *UpdateGroupReceiptSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

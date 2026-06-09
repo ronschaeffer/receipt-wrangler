@@ -22,6 +22,8 @@ func BuildGroupRouter() *chi.Mux {
 	groupRouter.Post("/{groupId}/pollGroupEmail", handlers.PollGroupEmail)
 	groupRouter.Post("/getPagedGroups", handlers.GetPagedGroups)
 	groupRouter.Get("/{groupId}/ocrText", handlers.GetOcrTextForGroup)
+	groupRouter.Get("/{groupId}/categories", handlers.GetGroupCategories)
+	groupRouter.Put("/{groupId}/categories", handlers.SetGroupCategories)
 
 	return groupRouter
 }
