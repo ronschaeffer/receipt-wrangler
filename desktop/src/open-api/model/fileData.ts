@@ -36,6 +36,10 @@ export interface FileData {
      * File size
      */
     size?: number;
+    /**
+     * SHA-256 hex digest of the uploaded file bytes (duplicate detection)
+     */
+    sourceHash?: string;
     updatedAt?: string;
 }
 

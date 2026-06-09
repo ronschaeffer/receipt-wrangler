@@ -35,6 +35,10 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 
 	fileData.FileType = validatedFileType
 
+	// Compute a content hash of the uploaded bytes for exact-duplicate detection.
+	sourceHash := utils.Sha256Hash(fileBytes)
+	fileData.SourceHash = &sourceHash
+
 	basePath, err := os.Getwd()
 	if err != nil {
 		return models.FileData{}, err
@@ -76,7 +80,50 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 		return models.FileData{}, err
 	}
 
+	// Best-effort exact-duplicate detection: if another receipt in the same group
+	// already has a file with this hash, flag the new receipt for review. Never
+	// blocks the upload.
+	repository.flagIfDuplicate(fileData, sourceHash)
+
 	return fileData, nil
+}
+
+// flagIfDuplicate looks for an existing receipt (other than this one) in the same
+// group whose file shares the given content hash. If found, the new receipt is
+// set to NEEDS_ATTENTION and a comment is added linking the original. Errors are
+// swallowed so a detection failure never breaks the upload.
+func (repository ReceiptImageRepository) flagIfDuplicate(newFile models.FileData, sourceHash string) {
+	db := repository.GetDB()
+
+	// Resolve the new file's receipt + group.
+	var newReceipt models.Receipt
+	if err := db.Model(&models.Receipt{}).Select("id, group_id").Where("id = ?", newFile.ReceiptId).First(&newReceipt).Error; err != nil {
+		return
+	}
+
+	// Find another receipt in the same group with a file of the same hash.
+	var original models.Receipt
+	err := db.Model(&models.Receipt{}).
+		Joins("JOIN file_data ON file_data.receipt_id = receipts.id").
+		Where("file_data.source_hash = ?", sourceHash).
+		Where("receipts.group_id = ?", newReceipt.GroupId).
+		Where("receipts.id <> ?", newReceipt.ID).
+		Select("receipts.id, receipts.group_id, receipts.name").
+		Order("receipts.id asc").
+		First(&original).Error
+	if err != nil {
+		return // no duplicate (or lookup failed) — nothing to do
+	}
+
+	// Flag the new receipt and leave a breadcrumb to the original.
+	db.Model(&models.Receipt{}).Where("id = ?", newReceipt.ID).Update("status", models.NEEDS_ATTENTION)
+
+	comment := models.Comment{
+		ReceiptId:      newReceipt.ID,
+		Comment:        "Possible duplicate: an existing receipt in this group has an identical file.",
+		AdditionalInfo: "duplicate-of-receipt:" + utils.UintToString(original.ID),
+	}
+	db.Model(&models.Comment{}).Create(&comment)
 }
 
 func (repository ReceiptImageRepository) GetReceiptImageById(receiptImageId uint) (models.FileData, error) {

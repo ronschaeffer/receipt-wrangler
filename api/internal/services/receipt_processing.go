@@ -313,6 +313,12 @@ func (service ReceiptProcessingService) filterCategoriesToGroup(categories []com
 			filtered = append(filtered, c)
 		}
 	}
+
+	// Expenses allow at most one category per receipt: keep only the first
+	// in-scope category the AI returned.
+	if len(filtered) > 1 {
+		filtered = filtered[:1]
+	}
 	return filtered
 }
 

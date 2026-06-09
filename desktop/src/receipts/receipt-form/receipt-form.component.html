@@ -4,6 +4,24 @@
     [headerButtonsTemplate]="formHeaderButtons"
     [displayBackButton]="queueIndex === -1"
   ></app-form-header>
+  @if (isFlaggedDuplicate) {
+    <div class="duplicate-banner mb-2">
+      <app-alert
+        type="warning"
+        message="This receipt looks like a duplicate of an existing receipt in this group."
+      ></app-alert>
+      <div class="duplicate-banner-actions d-flex align-items-center gap-2 mt-1">
+        <a [routerLink]="duplicateOriginalLink">View the existing receipt</a>
+        @if (mode === formMode.edit) {
+          <app-button
+            buttonText="Not a duplicate"
+            color="accent"
+            (clicked)="dismissDuplicate()"
+          ></app-button>
+        }
+      </div>
+    </div>
+  }
   <div class="row g-1">
     <div class="col g-4">
       @if (queueIndex > -1) {
@@ -68,7 +86,7 @@
               ></app-tag-autocomplete>
             }
             <app-datepicker
-              label="Date"
+              label="Payment date"
               class="w-100"
               [inputFormControl]="form | formGet : 'date'"
               [readonly]="mode | inputReadonly"

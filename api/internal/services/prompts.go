@@ -53,7 +53,7 @@ If the receipt represents a refund, return, or credit (money returned to the cus
 Please do NOT add any additional information, only valid JSON.
 Please return the json in plaintext ONLY, do not ever return it in a code block or any other format.
 
-Choose up to 2 categories from the given list based on the receipt's items and store name. If no categories fit, please return an empty array for the field and do not select any categories. When selecting categories, select only the id, like:
+Choose at most ONE category from the given list based on the receipt's items and store name. Return a single category in the array (or an empty array if none fit). If no categories fit, please return an empty array for the field and do not select any categories. When selecting categories, select only the id, like:
 {
 	Id: category id
 }

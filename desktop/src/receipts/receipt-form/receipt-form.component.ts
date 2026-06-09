@@ -148,6 +148,31 @@ export class ReceiptFormComponent implements OnInit {
     return this.form.get("receiptItems") as FormArray;
   }
 
+  // Duplicate review: a flagged receipt carries a comment whose additionalInfo
+  // is "duplicate-of-receipt:<id>". Expose whether this receipt is flagged and
+  // the original's id so the form can show a banner + link.
+  public get duplicateOfReceiptId(): number | null {
+    const comments = this.originalReceipt?.comments ?? [];
+    for (const c of comments) {
+      const info = c.additionalInfo ?? "";
+      if (info.startsWith("duplicate-of-receipt:")) {
+        const id = Number(info.split(":")[1]);
+        if (!Number.isNaN(id)) {
+          return id;
+        }
+      }
+    }
+    return null;
+  }
+
+  public get isFlaggedDuplicate(): boolean {
+    return this.duplicateOfReceiptId !== null;
+  }
+
+  public get duplicateOriginalLink(): string {
+    return `/receipts/${this.duplicateOfReceiptId}/view`;
+  }
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private customFieldTypePipe: CustomFieldTypePipe,
@@ -340,7 +365,10 @@ export class ReceiptFormComponent implements OnInit {
         this.originalReceipt?.categories ?? []
       ),
       tags: this.formBuilder.array(this.originalReceipt?.tags ?? []),
-      date: [this.originalReceipt?.date ?? new Date(), Validators.required],
+      // Default to empty (not today) so the user must enter the real payment
+      // date rather than silently capturing the date-added. Required validator
+      // forces a deliberate choice.
+      date: [this.originalReceipt?.date ?? null, Validators.required],
       paidByUserId: [
         this.originalReceipt?.paidByUserId ?? "",
         Validators.required,
@@ -367,6 +395,27 @@ export class ReceiptFormComponent implements OnInit {
     this.setupAmountSyncListener();
     this.listenForGroupChanges();
     this.listenForSyncWithItemsChanges();
+    this.listenForCategoryCap();
+  }
+
+  // Expenses allow at most one category per receipt. If a second is added via
+  // the autocomplete, keep only the most recently selected one. The categories
+  // control is a FormArray (preserved for the submit contract); we just trim it.
+  private listenForCategoryCap(): void {
+    const categories = this.form.get("categories") as FormArray;
+    if (!categories) {
+      return;
+    }
+    categories.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(() => {
+        if (categories.length > 1) {
+          // Remove all but the last-added entry.
+          while (categories.length > 1) {
+            categories.removeAt(0);
+          }
+        }
+      });
   }
 
   private listenForSyncWithItemsChanges(): void {
@@ -869,6 +918,27 @@ export class ReceiptFormComponent implements OnInit {
         ),
         tap(() => {
           this.router.navigate([route]);
+        })
+      )
+      .subscribe();
+  }
+
+  // Dismiss the duplicate flag: clear NEEDS_ATTENTION back to OPEN and persist.
+  // Only available in edit mode (needs a saved receipt).
+  public dismissDuplicate(): void {
+    this.form.patchValue({ status: ReceiptStatus.Open });
+    this.receiptService
+      .updateReceipt(this.originalReceipt?.id as number, this.form.value)
+      .pipe(
+        take(1),
+        tap(() => {
+          this.snackbarService.success("Duplicate flag cleared");
+          if (this.originalReceipt) {
+            this.originalReceipt.status = ReceiptStatus.Open;
+            this.originalReceipt.comments = (this.originalReceipt.comments ?? []).filter(
+              (c) => !(c.additionalInfo ?? "").startsWith("duplicate-of-receipt:")
+            );
+          }
         })
       )
       .subscribe();

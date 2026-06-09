@@ -1,0 +1,28 @@
+# Build/test artefacts that must never enter the Docker build context.
+# The Dockerfile copies api/, desktop/, docker/ and runs `RUN mkdir temp`/`mkdir data`/`mkdir logs`,
+# which fail if those dirs already exist in the context. Local `go test` and dev runs
+# create them, so exclude them here rather than hand-cleaning before every build.
+
+# Go API runtime/test artefacts
+api/temp/
+api/data/
+api/logs/
+api/internal/env/logs/
+**/app.db
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# Desktop build artefacts
+desktop/node_modules/
+desktop/dist/
+desktop/.angular/
+
+# VCS / editor / OS noise
+.git/
+.gitignore
+**/.DS_Store
+**/*.log
+
+# Docs / local notes (not needed in the image)
+*.md

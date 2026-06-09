@@ -3513,6 +3513,11 @@ components:
           description: File size
           format: uint64
           x-go-name: Size
+        sourceHash:
+          type: string
+          nullable: true
+          description: SHA-256 hex digest of the uploaded file bytes (duplicate detection)
+          x-go-name: SourceHash
         updatedAt:
           type: string
 
