@@ -63,6 +63,13 @@ class ImapClient:
         skip_verify = os.environ.get("IMAP_TLS_SKIP_VERIFY", "").lower() in ("1", "true", "yes")
         ssl_context = None
         if skip_verify:
+            logging.warning(
+                "IMAP_TLS_SKIP_VERIFY is enabled: TLS certificate verification is "
+                "DISABLED for %s:%s. This exposes the connection to "
+                "man-in-the-middle attacks and should only be used for trusted "
+                "internal hosts with self-signed certificates.",
+                self.host, self.port,
+            )
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
@@ -100,8 +107,10 @@ class ImapClient:
             # message and re-raise to the Go caller as exit status 1).
             try:
                 formatted_data = self._get_formatted_message_data(data)
-            except Exception as e:
-                logging.error(f"Skipping message {message_id}: {e}")
+            except Exception:
+                # logging.exception preserves the traceback so the malformed
+                # message can be diagnosed, while we continue the poll.
+                logging.exception(f"Skipping message {message_id}")
                 continue
             if len(formatted_data) > 0:
                 formatted_data[message_id] = message_id
